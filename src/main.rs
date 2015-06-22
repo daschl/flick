@@ -1,4 +1,4 @@
-mod net;
+pub mod net;
 
 use net::ping::Ping;
 

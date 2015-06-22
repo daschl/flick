@@ -1,3 +1,20 @@
+//! The ping module allows to perform pings against a target system.
+//!
+//! In the current implementation, it utilizes the `ping` command provided by
+//! the underlying operating system, because ICMP request and responses very
+//! often require root permissions (or setuid) to run properly.
+//!
+//! You want to start with the `Ping` struct and its `run` method:
+//!
+//! # Examples
+//!
+//! ```
+//! use net::ping::Ping;
+//!
+//! let ping = Ping::new(String::from("127.0.0.1"));
+//! println!("{:?}", ping.run());
+//! // Prints: Ok(PingResponse { destination: "127.0.0.1", packets: [PingPacket { icmp_seq: 0, time: 0.051000000000000004, ttl: 64 }] })
+//! ```
 use std::process::Command;
 
 #[derive(Debug)]
@@ -39,13 +56,17 @@ pub struct Ping {
 	destination: String
 }
 
+#[derive(Debug)]
+pub enum PingError { AnError }
+
 impl Ping {
 
 	pub fn new(destination: String) -> Ping {
 		Ping { destination: destination }
 	}
 
-	pub fn run(&self) -> PingResponse {
+	/// Performs the `ping` operation against the destination.
+	pub fn run(&self) -> Result<PingResponse, PingError> {
 		let executed = Command::new("ping")
 			.arg("-c 1")
 			.arg(self.destination.clone())
@@ -59,15 +80,14 @@ impl Ping {
 		// error if ping does not exist
 		// error if hostname not found or other error
 		// test it????
-		// write docs to see how it is generated
 
 		let stdout = String::from_utf8_lossy(&executed.stdout);
 		let packets = PingPacket::from(&*stdout);
 		
-		PingResponse { 
+		Ok(PingResponse { 
 			destination: self.destination.clone(), 
 			packets: packets 
-		}
+		})
 	}
 
 }
