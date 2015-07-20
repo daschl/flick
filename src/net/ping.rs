@@ -57,7 +57,7 @@ pub struct Ping {
 }
 
 #[derive(Debug)]
-pub enum PingError { AnError }
+pub enum PingError { Generic }
 
 impl Ping {
 
@@ -83,11 +83,15 @@ impl Ping {
 
 		let stdout = String::from_utf8_lossy(&executed.stdout);
 		let packets = PingPacket::from(&*stdout);
-		
-		Ok(PingResponse { 
-			destination: self.destination.clone(), 
-			packets: packets 
-		})
+
+		if packets.len() > 0 {
+			Ok(PingResponse { 
+				destination: self.destination.clone(), 
+				packets: packets 
+			})
+		} else {
+			Err(PingError::Generic)
+		}
 	}
 
 }

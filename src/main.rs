@@ -1,12 +1,33 @@
 pub mod net;
+extern crate term;
 
 use net::ping::Ping;
+use std::io::prelude::*;
+use term::StdoutTerminal;
 
 fn main() {
-	// todo: allow to pass in hostname
-	// print when it starts pinging and in green OK of in red FAILURE
-	// if green keep going, if failure print the returned failure nicely.
-    let ping = Ping::new(String::from("127.0.0.1"));
+	let mut terminal = term::stdout().unwrap();
 
-    println!("{:?}", ping.run());
+	let destination = String::from("127.0.0.1");
+	print!("Pinging {}: ", destination);
+    let ping = Ping::new(destination);
+
+    match ping.run() {
+    	Ok(_) => {
+    		write_success(&mut *terminal, "OK");
+    	},
+    	Err(err) => {
+    		terminal.fg(term::color::RED).unwrap();
+    		(writeln!(terminal, "ERROR ({:?})", err)).unwrap();
+    		terminal.fg(term::color::BLACK).unwrap();
+    	}
+    }
+
+    println!("wat?");
+}
+
+fn write_success(terminal: &mut StdoutTerminal, message: &str) {
+	terminal.fg(term::color::GREEN).unwrap();
+	(writeln!(terminal, "{}", message)).unwrap();
+	terminal.fg(term::color::BLACK).unwrap();
 }
